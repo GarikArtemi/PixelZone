@@ -13,9 +13,9 @@
     <!-- Firebase SDK Setup -->
     <script type="module">
         import { initializeApp } from "https://gstatic.com";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://gstatic.com";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://gstatic.com";
 
-        // տեղադրեք ձեր Firebase հավելվածի տվյալները Firebase Console-ից
+        // TODO: Տեղադրեք ձեր Firebase հավելվածի տվյալները Firebase Console-ից
         const firebaseConfig = {
             apiKey: "AIzaSyBYoxnItxz2PLMQAo-LQVTgHlZWVcxbMh4",
             authDomain: "phoenix-vps-hosting.firebaseapp.com",
@@ -28,6 +28,26 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const googleProvider = new GoogleAuthProvider();
+
+        // Օգտատիրոջ կարգավիճակի ստուգում (Գլոբալ փոփոխական)
+        window.currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            const authBtn = document.getElementById('auth-nav-btn');
+            if (user) {
+                window.currentUser = user;
+                authBtn.innerHTML = `<i class="fa-solid fa-sign-out-alt"></i> Ելք (${user.displayName || 'Օգտատեր'})`;
+                authBtn.setAttribute('onclick', 'logoutUser()');
+            } else {
+                window.currentUser = null;
+                authBtn.innerHTML = `<i class="fa-solid fa-user"></i> Մուտք / Գրանցում`;
+                authBtn.setAttribute('onclick', 'openAuthModal()');
+            }
+        });
+
+        window.logoutUser = function() {
+            signOut(auth).then(() => alert("Դուրս եք եկել համակարգից:"));
+        }
 
         window.loginWithGoogle = function() {
             signInWithPopup(auth, googleProvider)
@@ -79,7 +99,7 @@
             <ul class="nav-links">
                 <li><a href="#" class="active"><i class="fa-solid fa-house"></i> Գլխավոր</a></li>
                 <li><a href="#shop"><i class="fa-solid fa-basket-shopping"></i> Խանութ</a></li>
-                <li><button onclick="openAuthModal()" class="btn-login-nav"><i class="fa-solid fa-user"></i> Մուտք / Գրանցում</button></li>
+                <li><button id="auth-nav-btn" onclick="openAuthModal()" class="btn-login-nav"><i class="fa-solid fa-user"></i> Մուտք / Գրանցում</button></li>
             </ul>
         </div>
     </nav>
@@ -96,8 +116,7 @@
             
             <div class="server-status-board">
                 <div class="status-item"><i class="fa-solid fa-users"></i> Օնլայն: <span>124 / 500</span></div>
-                <div class="status-item"><i class="fa-solid fa-code-branch"></i> Տարբերակ: <span>1.21.x (Paper)</span></div>
-                <div class="status-item"><i class="fa-solid fa-signal"></i> Ping: <span>32ms</span></div>
+                <div class="status-item"><i class="fa-solid fa-code-branch"></i> Տարբերակ: <span>1.21.x</span></div>
                 <div class="status-item"><i class="fa-solid fa-circle-check"></i> Status: <span class="online">ONLINE</span></div>
             </div>
         </div>
@@ -113,22 +132,22 @@
             <div class="card card-key">
                 <h3>[2] ԲԱՆԱԼԻ</h3>
                 <p class="price">200 ֏</p>
-                <button onclick="openPayment('[2] Բանալի', 200)" class="btn-buy">Գնել</button>
+                <button onclick="handleBuy('[2] Բանալի', 200)" class="btn-buy">Գնել</button>
             </div>
             <div class="card card-key">
                 <h3>[3] ԲԱՆԱԼԻ</h3>
                 <p class="price">600 ֏</p>
-                <button onclick="openPayment('[3] Բանալի', 600)" class="btn-buy">Գնել</button>
+                <button onclick="handleBuy('[3] Բանալի', 600)" class="btn-buy">Գնել</button>
             </div>
             <div class="card card-key">
                 <h3>[6] ԲԱՆԱԼԻ</h3>
                 <p class="price">1200 ֏</p>
-                <button onclick="openPayment('[6] Բանալի', 1200)" class="btn-buy">Գնել</button>
+                <button onclick="handleBuy('[6] Բանալի', 1200)" class="btn-buy">Գնել</button>
             </div>
             <div class="card card-key">
                 <h3>[10] ԲԱՆԱԼԻ</h3>
                 <p class="price">1600 ֏</p>
-                <button onclick="openPayment('[10] Բանալի', 1600)" class="btn-buy">Գնել</button>
+                <button onclick="handleBuy('[10] Բանալի', 1600)" class="btn-buy">Գնել</button>
             </div>
         </div>
 
@@ -138,42 +157,56 @@
             <div class="card card-rank vip">
                 <h3>[VIP]</h3>
                 <p class="price">600 ֏</p>
-                <button onclick="openPayment('[VIP] Կոչում', 600)" class="btn-buy">Գնել</button>
+                <button onclick="handleBuy('[VIP] Կոչում', 600)" class="btn-buy">Գնել</button>
             </div>
             <div class="card card-rank dragon">
                 <h3>[DRAGON]</h3>
                 <p class="price">800 ֏</p>
-                <button onclick="openPayment('[DRAGON] Կոչում', 800)" class="btn-buy">Գնել</button>
+                <button onclick="handleBuy('[DRAGON] Կոչում', 800)" class="btn-buy">Գնել</button>
             </div>
             <div class="card card-rank deluxe">
                 <h3>[DELUXE]</h3>
                 <p class="price">1400 ֏</p>
-                <button onclick="openPayment('[DELUXE] Կոչում', 1400)" class="btn-buy">Գնել</button>
+                <button onclick="handleBuy('[DELUXE] Կոչում', 1400)" class="btn-buy">Գնել</button>
             </div>
             <div class="card card-rank legend">
                 <h3>[LEGEND]</h3>
                 <p class="price">3200 ֏</p>
-                <button onclick="openPayment('[LEGEND] Կոչում', 3200)" class="btn-buy">Գնել</button>
+                <button onclick="handleBuy('[LEGEND] Կոչում', 3200)" class="btn-buy">Գնել</button>
             </div>
             <div class="card card-rank ultra">
                 <h3>[ULTRA]</h3>
                 <p class="price">5000 ֏</p>
-                <button onclick="openPayment('[ULTRA] Կոչում', 5000)" class="btn-buy">Գնել</button>
+                <button onclick="handleBuy('[ULTRA] Կոչում', 5000)" class="btn-buy">Գնել</button>
             </div>
         </div>
     </main>
 
-    <!-- Telcell Վճարման Մոդալ պատուհան -->
+    <!-- ՍԻՐՈՒՆ ԴԻԶԱՅՆՈՎ TELCELL + DISCORD ՊԱՏՈՒՀԱՆ -->
     <div id="payment-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content info-modal">
             <span class="close-btn" onclick="closePayment()">&times;</span>
-            <h2>Վճարման Հաստատում</h2>
-            <div class="telcell-box"><i class="fa-solid fa-wallet"></i> Telcell Wallet</div>
-            <p>Ապրանք: <strong id="item-name"></strong></p>
-            <p>Գումարը: <strong id="item-price"></strong> ֏</p>
-            <p class="instructions">Փոխանցեք նշված գումարը այս հեռախոսահամարին՝</p>
-            <div class="phone-number">098 752 205</div>
-            <p class="warning-text"><i class="fa-solid fa-triangle-exclamation"></i> Նշեք ձեր nickname-ը փոխանցման ժամանակ:</p>
+            <div class="modal-badge"><i class="fa-solid fa-basket-shopping"></i> Գնում</div>
+            
+            <h2>Հաստատեք Ձեր Գնումը</h2>
+            <div class="product-info-box">
+                <p>Ապրանք՝ <span id="item-name" class="neon-text-blue"></span></p>
+                <p>Արժեք՝ <span id="item-price" class="neon-text-pink"></span> ֏</p>
+            </div>
+
+            <div class="telcell-banner">
+                <i class="fa-solid fa-wallet"></i> ԳՈՒՄԱՐՄԱՆ ՊԼԱՆԸ ՄԵԶ ՄՈՏ TELCELL WALLET Է
+            </div>
+
+            <div class="instruction-steps">
+                <div class="step"><i class="fa-brands fa-discord"></i> 1. Սկզբի համար միացեք մեր դիսկորդ սերվերին և ստեղծեք տոմս (ticket):</div>
+                <div class="step"><i class="fa-solid fa-mobile-screen-button"></i> 2. Այս հեռախոսահամարին փոխանցեք գումարը՝ <strong class="phone-highlight">098752205</strong></div>
+                <div class="step"><i class="fa-solid fa-receipt"></i> 3. Ուղարկեք կտրոնը (չեկը) տոմսի մեջ, որպեսզի հաստատենք և տվեք ձեր խաղային անունը (<strong>nickname</strong>):</div>
+            </div>
+
+            <a href="https://discord.gg" target="_blank" class="btn-discord-join">
+                <i class="fa-brands fa-discord"></i> ՄԻԱՑԻՐ ՄԵՐ ԴԻՍԿՈՐԴԻՆ
+            </a>
         </div>
     </div>
 
@@ -181,56 +214,30 @@
     <div id="auth-modal" class="modal">
         <div class="auth-container">
             <span class="close-btn" onclick="closeAuthModal()">&times;</span>
-            <div class="auth-tabs">
-                <button id="tab-login" class="tab-btn active" onclick="switchAuthTab('login')">Մուտք</button>
-                <button id="tab-register" class="tab-btn" onclick="switchAuthTab('register')">Գրանցում</button>
-            </div>
-            <form id="login-form" onsubmit="loginWithEmail(event)">
-                <input type="email" id="login-email" placeholder="Էլ. փոստ" required>
-                <input type="password" id="login-pass" placeholder="Գաղտնաբառ" required>
-                <button type="submit" class="btn-auth-submit">Մուտք Գործել</button>
-            </form>
-            <form id="register-form" onsubmit="registerWithEmail(event)" style="display: none;">
-                <input type="email" id="reg-email" placeholder="Էլ. փոստ" required>
-                <input type="password" id="reg-pass" placeholder="Գաղտնաբառ" required>
-                <input type="password" id="reg-confirm-pass" placeholder="Կրկնել Գաղտնաբառը" required>
-                <button type="submit" class="btn-auth-submit">Գրանցվել</button>
-            </form>
-            <div class="divider"><span>ԿԱՄ</span></div>
-            <button onclick="loginWithGoogle()" class="btn-google">
-                <i class="fa-brands fa-google"></i> Մուտք Google-ով
-            </button>
+            
+            <!-- Զգուշացնող հաղորդագրություն գնման ժամանակ -->
+            <div id="auth-warning" class="auth-warning-msg" style="display: none;">
+                        <!-- Այս կոդը տեղադրեք 214-րդ տողում -->
+        <div class="auth-tabs">
+            <button id="tab-login" class="tab-btn active" onclick="switchAuthTab('login')">Մուտք</button>
+            <button id="tab-register" class="tab-btn" onclick="switchAuthTab('register')">Գրանցում</button>
         </div>
-    </div>
 
-    <!-- JavaScript Ֆունկցիաներ -->
-    <script>
-        function openPayment(name, price) {
-            document.getElementById('item-name').innerText = name;
-            document.getElementById('item-price').innerText = price;
-            document.getElementById('payment-modal').style.display = 'flex';
-        }
-        function closePayment() {
-            document.getElementById('payment-modal').style.display = 'none';
-        }
-        function openAuthModal() {
-                  document.getElementById('auth-modal').style.display = 'flex';
-    }
+        <form id="login-form" onsubmit="loginWithEmail(event)">
+            <input type="email" id="login-email" placeholder="Էլ. փոստ" required>
+            <input type="password" id="login-pass" placeholder="Գաղտնաբառ" required>
+            <button type="submit" class="btn-auth-submit">Մուտք Գործել</button>
+        </form>
 
-    function closeAuthModal() {
-        document.getElementById('auth-modal').style.display = 'none';
-    }
+        <form id="register-form" onsubmit="registerWithEmail(event)" style="display: none;">
+            <input type="email" id="reg-email" placeholder="Էլ. փոստ" required>
+            <input type="password" id="reg-pass" placeholder="Գաղտնաբառ" required>
+            <input type="password" id="reg-confirm-pass" placeholder="Կրկնել Գաղտնաբառը" required>
+            <button type="submit" class="btn-auth-submit">Գրանցվել</button>
+        </form>
 
-    function switchAuthTab(type) {
-        if (type === 'login') {
-            document.getElementById('login-form').style.display = 'block';
-            document.getElementById('register-form').style.display = 'none';
-            document.getElementById('tab-login').classList.add('active');
-            document.getElementById('tab-register').classList.remove('active');
-        } else {
-            document.getElementById('login-form').style.display = 'none';
-            document.getElementById('register-form').style.display = 'block';
-            document.getElementById('tab-login').classList.remove('active');
-            document.getElementById('tab-register').classList.add('active');
-        }
-      }
+        <div class="divider"><span>ԿԱՄ</span></div>
+
+        <button onclick="loginWithGoogle()" class="btn-google">
+            <i class="fa-brands fa-google"></i> Մուտք Google-ով
+        </button>
